@@ -1,8 +1,11 @@
 [tool.poetry]
 name = "pastypy"
 version = "1.0.1"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Pasty API wrapper"
+authors = ["Zevaryx <zevaryx@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/zevaryx/pastypy"
+repository = "https://github.com/zevaryx/pastypy"
 
 [tool.poetry.dependencies]
 python = "^3.10"
