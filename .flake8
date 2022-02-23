@@ -1,0 +1,21 @@
+[flake8]
+exclude =
+    tests/*
+    examples/*
+
+extend-ignore =
+    Q0, E501, C812, E203, W503,  # These default to arguing with Black.  We might configure some of them eventually
+    ANN1, # Ignore self and cls annotations
+    ANN204, ANN206, # return annotations for special methods and class methods
+    D105, D107,  # Missing Docstrings in magic method and __init__
+    S311, # Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+    D401, # First line should be in imperative mood; try rephrasing
+    D400, # First line should end with a period
+    D101, # Missing docstring in public class
+    D106, # Missing docstring in public nested class
+    S413, # We use PyCryptoDome, so this is invalid
+
+    # Plugins we don't currently include: flake8-return
+    R503, # missing explicit return at the  end of function ableto return non-None value.
+
+max-line-length=100
