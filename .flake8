@@ -2,6 +2,7 @@
 exclude =
     tests/*
     examples/*
+    setup.py
 
 extend-ignore =
     Q0, E501, C812, E203, W503,  # These default to arguing with Black.  We might configure some of them eventually

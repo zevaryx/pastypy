@@ -13,7 +13,7 @@ jobs:
       - name: Install pytest
         run: |
           pip install -e .
-          pip install pytest pytest-recording pytest-asyncio pytest-cov
+          pip install pytest pytest-recording pytest-asyncio pytest-cov setuptools
       - name: Run Tests
         run: |
           pytest
