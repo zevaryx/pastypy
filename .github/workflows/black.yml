@@ -9,4 +9,4 @@ jobs:
       - uses: actions/checkout@v2
       - uses: rickstaa/action-black@v1
         with:
-          black_args: ". --check --diff --target-version py310"
+          black_args: ". --check --diff --target-version py310 --line-length=100"
