@@ -12,4 +12,4 @@ A Python wrapper around [Pasty](https://github.com/lus/pasty) written by lus
 
 ## Examples
 
-See [examples](examples) for usage and examples
+See [examples](https://github.com/zevaryx/pastypy/tree/main/examples) for usage and examples
