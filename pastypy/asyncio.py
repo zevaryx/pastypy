@@ -116,8 +116,9 @@ class AsyncPaste:
         Returns:
             Modification token
         """
-        site = self._site or site
-        endpoint = site + "/api/v2/pastes"
+        if not self._site:
+            self._site = site
+        endpoint = self._site + "/api/v2/pastes"
 
         payload = {
             "content": self._content,
