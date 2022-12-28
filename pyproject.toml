@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pastypy"
-version = "1.0.1"
+version = "1.0.2"
 description = "Pasty API wrapper"
 authors = ["Zevaryx <zevaryx@gmail.com>"]
 readme = "README.md"
