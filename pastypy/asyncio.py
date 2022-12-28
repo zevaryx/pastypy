@@ -1,36 +1,12 @@
 """AsyncIO Paste wrapper."""
-from binascii import hexlify
 from typing import Optional
 
 from aiohttp import ClientSession
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
-from Crypto.Util.Padding import pad, unpad
+
+from pastypy.sync import Paste
 
 
-class AsyncPaste:
-    def __init__(
-        self,
-        content: str,
-        id: Optional[str] = None,
-        created: Optional[int] = None,
-        metadata: Optional[dict] = None,
-        site: Optional[str] = None,
-    ):
-        self._content = content
-        self.id = id
-        self.created = created
-        self.metadata = metadata or {}
-        self._site = site
-
-        self.encrypted = "pf_encryption" in self.metadata
-        self._plaintext = None if self.encrypted else self._content
-        self._token = None
-        self._key = None
-
-    def __repr__(self):
-        return f"<AsyncPaste: content={self.content}, encrypted={self.encrypted}>"
-
+class AsyncPaste(Paste):
     @classmethod
     async def get(cls, id: str, site: Optional[str] = "https://pasty.lus.pm") -> "AsyncPaste":
         """
@@ -50,61 +26,31 @@ class AsyncPaste:
         raw["site"] = site
         return cls(**raw)
 
-    @property
-    def content(self) -> str:
-        """Get the Paste contents."""
-        return self._plaintext or f"<Encrypted: {self._content}>"
-
-    @property
-    def url(self) -> str:
-        """Get the Paste URL."""
-        if self.id:
-            return self._site + f"/{self.id}"
-
-    def encrypt(self) -> str:
+    @classmethod
+    async def report(cls, target: "Paste | str", reason: str, site: Optional[str] = "https://pasty.lus.pm") -> str:
         """
-        Encrypt a paste.
-
-        Returns:
-            Hexlified key
-
-        Raises:
-            ValueError: Cannot encrypt encrypted paste
-        """
-        if self.encrypted:
-            raise ValueError("Cannot encrypt encrypted paste")
-        key = get_random_bytes(32)
-        cipher = AES.new(key, mode=AES.MODE_CBC)
-        iv = cipher.iv
-        ct = cipher.encrypt(pad(self._content.encode("UTF-8"), AES.block_size))
-        self._plaintext = self._content
-        self._content = hexlify(ct).decode("UTF8")
-        self._key = key
-        self.metadata["pf_encryption"] = {"alg": "AES-CBC", "iv": hexlify(iv).decode("UTF8")}
-        self.encrypted = True
-        return hexlify(key).decode("UTF8")
-
-    def decrypt(self, key: Optional[str] = None) -> bool:
-        """
-        Decrypt a paste
+        Report a paste.
 
         Args:
-            key: Decryption key
-
-        Returns:
-            If decryption was successful
+            target: Paste or paste ID
+            site: Target site, default official
         """
-        if not self.encrypted:
-            return True
-        if not any([self._key, key]):
-            raise ValueError("Key required if not encrypted/decrypted locally")
-        key = self._key or bytes.fromhex(key)
-        iv = bytes.fromhex(self.metadata["pf_encryption"]["iv"])
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        padded = cipher.decrypt(bytes.fromhex(self._content))
-        self._plaintext = unpad(padded, AES.block_size).decode("UTF8")
-        self._key = key
-        return True
+        if isinstance(target, cls):
+            target = target.id
+
+        endpoint = site + f"/api/v2/pastes/{target}/report"
+        async with ClientSession() as session:
+            resp = await session.get(endpoint)
+            if resp.status == 404:
+                return "This site does not support reporting"
+            resp.raise_for_status()
+
+            raw = await resp.json(content_type="text/plain")
+
+        if not raw["success"]:
+            return f"Failed to report message: {raw['message']}"
+
+        return f"Reported message: {raw['message']}"
 
     async def save(self, site: Optional[str] = "https://pasty.lus.pm") -> str:
         """

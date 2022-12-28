@@ -2,10 +2,10 @@
 from binascii import hexlify
 from typing import Optional
 
-import requests
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
+import requests
 
 
 class Paste:
@@ -29,7 +29,7 @@ class Paste:
         self._key = None
 
     def __repr__(self):
-        return f"<Paste: content={self.content}, encrypted={self.encrypted}>"
+        return f"<{self.__class__.__name__}: content={self.content}, encrypted={self.encrypted}>"
 
     @classmethod
     def get(cls, id: str, site: Optional[str] = "https://pasty.lus.pm") -> "Paste":
@@ -38,6 +38,7 @@ class Paste:
 
         Args:
             id: ID of paste to get
+            site: Target site, default official
 
         Returns:
             New Paste instance
@@ -48,6 +49,30 @@ class Paste:
         raw = resp.json()
         raw["site"] = site
         return cls(**raw)
+
+    @classmethod
+    def report(cls, target: "Paste | str", reason: str, site: Optional[str] = "https://pasty.lus.pm") -> str:
+        """
+        Report a paste.
+
+        Args:
+            target: Paste or paste ID
+            site: Target site, default official
+        """
+        if isinstance(target, cls):
+            target = target.id
+
+        endpoint = site + f"/api/v2/pastes/{target}/report"
+        resp = requests.post(endpoint, json={"reason": reason})
+        if resp.status_code == 404:
+            return "This site does not support reporting"
+        resp.raise_for_status()
+
+        raw = resp.json()
+        if not raw["success"]:
+            return f"Failed to report message: {raw['message']}"
+
+        return f"Reported message: {raw['message']}"
 
     @property
     def content(self) -> str:
